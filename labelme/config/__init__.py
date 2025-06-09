@@ -25,7 +25,7 @@ def update_dict(target_dict, new_dict, validate_item=None):
 
 def get_default_config():
     config_file = osp.join(here, "default_config.yaml")
-    with open(config_file) as f:
+    with open(config_file, 'r') as f:
         config = yaml.safe_load(f)
 
     # save default config to ~/.labelmerc

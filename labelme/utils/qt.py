@@ -10,9 +10,11 @@ here = osp.dirname(osp.abspath(__file__))
 
 
 def newIcon(icon):
-    icons_dir = osp.join(here, "../icons")
-    return QtGui.QIcon(osp.join(":/", icons_dir, "%s.png" % icon))
+    return QtGui.QIcon(getIconStr(icon))
 
+def getIconStr(icon):
+    icons_dir = osp.join(here, "../icons")
+    return osp.join(":/", icons_dir, "%s.png" % icon)
 
 def newButton(text, icon=None, slot=None):
     b = QtWidgets.QPushButton(text)
@@ -21,7 +23,6 @@ def newButton(text, icon=None, slot=None):
     if slot is not None:
         b.clicked.connect(slot)
     return b
-
 
 def newAction(
     parent,
@@ -37,8 +38,18 @@ def newAction(
     """Create a new action and assign callbacks, shortcuts, etc."""
     a = QtWidgets.QAction(text, parent)
     if icon is not None:
+        pixmap = QtGui.QPixmap(getIconStr(icon))
+        if (icon == "IntegerTech"):
+            pixmap = pixmap.scaled(
+                80,
+                75,
+                QtCore.Qt.KeepAspectRatio,
+                QtCore.Qt.SmoothTransformation
+            )
+        icon = QtGui.QIcon(pixmap)
+        a.setIcon(icon)
+
         a.setIconText(text.replace(" ", "\n"))
-        a.setIcon(newIcon(icon))
     if shortcut is not None:
         if isinstance(shortcut, (list, tuple)):
             a.setShortcuts(shortcut)

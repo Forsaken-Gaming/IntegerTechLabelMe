@@ -217,7 +217,7 @@ def main():
         win.settings.clear()
         sys.exit(0)
 
-    with logger.catch(), contextlib.redirect_stderr(new_target=_LoggerIO()):  # type: ignore[type-var]
+    with logger.catch(), contextlib.redirect_stderr(new_target=_LoggerIO()):
         win.show()
         win.raise_()
         sys.exit(app.exec_())

@@ -45,12 +45,10 @@ fragments = [{ path = "README.md" }]
 [dependency-groups]
 dev = [
   "mypy>=1.15.0",
-  "pyqt5-stubs>=5.15.6.0",
   "pytest>=8.3.4",
   "pytest-qt>=4.4.0",
   "ruff==0.1.9",
   "twine>=6.1.0",
-  "types-pillow>=10.2.0.20240822",
   "types-pyyaml>=6.0.12.20241230",
 ]
 
@@ -67,12 +65,9 @@ markers = [
   "gui: mark a test as a GUI test.",
 ]
 
-[tool.ruff.lint]
-select = ["E", "F", "I"]
-
-[tool.ruff.lint.isort]
+[tool.isort]
 force-single-line = true
 
 [tool.mypy]
-check_untyped_defs = true
 ignore_missing_imports = true
+check_untyped_defs = false

@@ -2,14 +2,14 @@ import argparse
 import os
 import os.path as osp
 
-import imgviz
 import numpy as np
 import numpy.typing as npt
+import imgviz
 import PIL.Image
 from loguru import logger
 
-from labelme import utils
 from labelme.label_file import LabelFile
+from labelme import utils
 
 
 def main():
@@ -44,7 +44,7 @@ def main():
 
     label_names = [None] * (max(label_name_to_value.values()) + 1)
     for name, value in label_name_to_value.items():
-        label_names[value] = name  # type: ignore[call-overload]
+        label_names[value] = name
 
     lbl_viz = imgviz.label2rgb(
         lbl, imgviz.asgray(image), label_names=label_names, loc="rb"
@@ -56,7 +56,7 @@ def main():
 
     with open(osp.join(out_dir, "label_names.txt"), "w") as f:
         for lbl_name in label_names:
-            f.write(lbl_name + "\n")  # type: ignore[operator]
+            f.write(lbl_name + "\n")
 
     logger.info("Saved to: {}".format(out_dir))
 
