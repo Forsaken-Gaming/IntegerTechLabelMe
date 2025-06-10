@@ -3,11 +3,16 @@
 
 #### Simple features:
 
-- [ ] Log.txt file
+- [ ] Log.txt file when creating video for additional metrics (label enters/exits frame, unannotated frame, etc.) (simples os opperations, prototype already created)
+- [ ] Test threading by saving dummy png/json files from server to local machine to see if it's possible to improve times for video compiling (despite network limitations) (```concurrent.futures import ThreadPoolExecutor```)
 
 #### Complex features:
 
-- [ ] Remove label feature
+- [ ] Remove specified label from all frames (or range of frames), working without flaw even if there is multiple labels with the same class name
+
+#### Minor changes that affect no one or anything:
+
+- [ ] --
 
 ---
 ## Unrelated development/setup notes
@@ -29,7 +34,7 @@ python -m pip install --upgrade pip
 pip install -e .
 ```
 *This ultizes pyproject.toml (where dependencies are located)
-installing newer version of pip for the venv is important, editable (-e) install of libaries doesn't work with older versions*
+installing newer version of pip for the venv is important, editable install (-e) of libaries doesn't work with older versions*
 
 ###### Run labelme in your venv (with ```labelme``` in the command line) to check if dependencies are properly installed
 
