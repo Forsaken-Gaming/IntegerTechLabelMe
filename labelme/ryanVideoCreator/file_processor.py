@@ -19,7 +19,7 @@ def decode_image_data(image_data):
     np_array = np.frombuffer(img_data, np.uint8)
     return cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-def process_annotation_file(json_path, subfolder_path, annotated_output_folder, text_position_offset=100):
+def process_annotation_file(json_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset=100):
     """
 
     This function reads the annotation data from a JSON file, retrieves the image path
@@ -36,13 +36,19 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
           to debug and test.
 
     """
-    with open(json_path, 'r') as f:
-        annotation_data = json.load(f)
-
-    image_filename = annotation_data.get('imagePath')
-    if not image_filename:
-        print(f"Warning: No 'imagePath' found in {json_path}. Skipping file.")
-        return
+    # Try to pull the image path from the json
+    try:
+        with open(json_path + ".json", 'r') as f:
+            annotation_data = json.load(f)
+        image_filename = annotation_data.get('imagePath')
+    except:
+        # If unable to find the json, assume the image file name from the name of the json
+        # if told to do so by user
+        annotation_data = None
+        if (onlyAnnotatedImages):
+            return
+        else:
+            image_filename = json_path.split(os.sep)[-1] + ".png"
 
     image_path = os.path.join(subfolder_path, image_filename)
     if not os.path.exists(image_path):
@@ -55,24 +61,27 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
     output_image_path = os.path.join(annotated_output_folder, image_filename)
     cv2.imwrite(output_image_path, annotated_image)
 
-def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, text_position_offset=100):
+def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, onlyAnnotatedImages, text_position_offset=100):
     """
     Processes all annotation files in a folder and saves annotated images.
 
     """
-    dir = os.listdir(subfolder_path)
+    # Get all of the PNG files in the directory
     png_files = sorted([
         f for f in os.listdir(subfolder_path)
         if f.lower().endswith('.png')
     ])
+    # Annotate each frame
     for i in range(indexTo - indexFrom):
+        # Check if the window was closed
         if (interrupted):
             return
-        json_path = os.path.join(subfolder_path, os.path.splitext(png_files[indexFrom + i])[0] + ".json")
+        # Get the json path of
+        image_path = os.path.join(subfolder_path, os.path.splitext(png_files[indexFrom + i])[0])
         try:
-            process_annotation_file(json_path, subfolder_path, annotated_output_folder, text_position_offset)
+            process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset)
         except Exception as e:
-            print(f"Error processing file {json_path}: {e}")
+            print(f"Error processing file {image_path}: {e}")
         callback()
 
 def setInterrupted(newVal):

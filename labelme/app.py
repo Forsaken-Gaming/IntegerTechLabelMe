@@ -2368,4 +2368,4 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog = CreateVideoDialog(
             parent=self
         )
-        dialog.exec_()
+        dialog.show()

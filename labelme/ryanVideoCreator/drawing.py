@@ -16,9 +16,9 @@ def draw_filename(image, filename, text_position_offset=100):
     cv2.putText(image, filename, text_position, cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 255), 2, cv2.LINE_AA)
 
 def draw_annotations_on_image(image, annotations, filename, text_position_offset=100):
-   
-    for shape in annotations.get('shapes', []):
-        if shape['shape_type'] == 'rectangle':
-            draw_rectangle_with_label(image, shape)
+    if annotations:
+        for shape in annotations.get('shapes', []):
+            if shape['shape_type'] == 'rectangle':
+                draw_rectangle_with_label(image, shape)
     draw_filename(image, filename, text_position_offset)
     return image

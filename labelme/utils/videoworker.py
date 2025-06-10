@@ -7,7 +7,7 @@ class VideoWorker(QObject):
     stepText = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, imageList, lastOpenDir, frameFrom, frameTo, fps):
+    def __init__(self, imageList, lastOpenDir, frameFrom, frameTo, fps, onlyAnnotatedImages):
         super().__init__()
         self.imageList = imageList
         self.lastOpenDir = lastOpenDir
@@ -20,8 +20,10 @@ class VideoWorker(QObject):
         self.fps = fps
         self.numberOfImages = self.frameTo - self.frameFrom
         self.currentImageIndex = 0
+        self.onlyAnnotatedImages = onlyAnnotatedImages
 
     def run(self):
+        # Get paths
         folderName = self.lastOpenDir.split("/")[-1]
         cachePath = os.path.join(os.path.expandvars(r"%TEMP%\LabelMeCache"), folderName) 
         outputPath = os.path.join(os.path.expanduser(r"~\Desktop"), folderName) 
@@ -31,30 +33,38 @@ class VideoWorker(QObject):
         # Delete Annotated Image Cache if it is a repeat generation
         if (os.path.exists(annotatedImagePath)):
             shutil.rmtree(annotatedImagePath)
+        
+        # Create paths
         os.makedirs(cachePath, exist_ok=True)
         os.makedirs(outputPath, exist_ok=True)
         os.makedirs(annotatedImagePath, exist_ok=True)
         os.makedirs(videoPath, exist_ok=True)
 
+        # Catch conditions in which the program should not run
 
+        # Make sure a folder is loaded
         if not self.imageList:
             self.finished.emit()
             return
+        # Make sure that your frame from isn't greater than the frame to
         if self.frameFrom > self.frameTo:
             self.finished.emit()
             return
+        # Make sure there will be at least 1 frame in the video
         if self.numberOfImages <= 0:
             self.finished.emit()
             return
-        self.frameFrom = max(self.frameFrom, 0)
-        self.frameTo = min(self.frameTo, len(self.imageList))
+        # If the process was cancelled last time, make sure Ryan's scripts will run
         labelme.ryanVideoCreator.setInterrupted(False)
+        
+        # Cache images
         self.cacheImages(cachePath)
 
+        # Annotate Images
         self.currentImageIndex = 0
-        labelme.ryanVideoCreator.file_processor.save_annotated_images(cachePath, annotatedImagePath, self.annotatedImageSaved, self.frameFrom, self.frameTo, 100)
+        labelme.ryanVideoCreator.file_processor.save_annotated_images(cachePath, annotatedImagePath, self.annotatedImageSaved, self.frameFrom, self.frameTo, self.onlyAnnotatedImages, 100)
 
-        self.stepText.emit("Writing Video...")
+        # Add Images to Video
         self.currentImageIndex = 0
         labelme.ryanVideoCreator.video_maker.compile_frames_to_video(annotated_output_folder=annotatedImagePath, output_video_path=os.path.join(videoPath, "output.mp4"), callback=self.videoFrameAdded, video_fps=self.fps)
 
@@ -75,10 +85,14 @@ class VideoWorker(QObject):
         self.stepText.emit(f"Adding Frames To Video ({self.currentImageIndex} / {self.numberOfImages})")
 
     def cacheImages(self, cachePath):
+        # Reset index
         self.currentImageIndex = 0
         for i in range(self.numberOfImages):
+            # End the process if the window is suddenly closed
             if not self.windowOpen:
                 return
+            
+            # Get the source and destination paths for the current png and json file
             sourceImagePath = self.imageList[i + self.frameFrom]
             imageNamewPath, ext = os.path.splitext(sourceImagePath)
             newImagePath = os.path.join(cachePath, imageNamewPath.split(os.sep)[-1])
@@ -103,6 +117,7 @@ class VideoWorker(QObject):
                 if os.path.exists(imageNamewPath + ".json"):
                     shutil.copy(imageNamewPath + ".json", newImagePath + ".json")
 
+            # Report back progress
             percent = round(((self.currentImageIndex / self.numberOfImages) / 2) * 100)
             self.progress.emit(percent)
             self.stepText.emit(f"Caching Images ({self.currentImageIndex} / {self.numberOfImages})")

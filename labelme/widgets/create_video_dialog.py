@@ -8,7 +8,6 @@ class CreateVideoDialog(QtWidgets.QDialog):
         super(CreateVideoDialog, self).__init__(parent)
         self.parent = parent
         self.videoThread = None
-        self.setModal(False)
         self.setWindowTitle("Annotated Video Creator")
 
         # overall layout
@@ -86,9 +85,18 @@ class CreateVideoDialog(QtWidgets.QDialog):
         self.fpsText.setText("10")
         fpsLayout.addWidget(self.fpsText)
 
+        # Annotated Images Checkbox
+        self.onlyAnnotatedImages = QtWidgets.QCheckBox("Use Only Annotated Images")
+        self.onlyAnnotatedImages.setToolTip("When checked, the video will contain only images that have a JSON beside them")
+        self.onlyAnnotatedImages.click()
+
+        fpsCheckCombo = QtWidgets.QHBoxLayout()
+        fpsCheckCombo.addLayout(fpsLayout)
+        fpsCheckCombo.addWidget(self.onlyAnnotatedImages)
+
         # Complete layout
         layout.addLayout(frameRangeLayout)
-        layout.addLayout(fpsLayout)
+        layout.addLayout(fpsCheckCombo)
         layout.addWidget(self.startButton)
         layout.addWidget(progressBar)
         layout.addWidget(stepLabel)
@@ -114,7 +122,7 @@ class CreateVideoDialog(QtWidgets.QDialog):
                 frameTo = 0
         
         self.videoThread = QThread()
-        self.worker = VideoWorker(self.parent.imageList, self.parent.lastOpenDir, frameFrom, frameTo, int(self.fpsText.text()))
+        self.worker = VideoWorker(self.parent.imageList, self.parent.lastOpenDir, frameFrom, frameTo, int(self.fpsText.text()), self.onlyAnnotatedImages.isChecked())
         self.worker.moveToThread(self.videoThread)
 
         self.videoThread.started.connect(self.worker.run)
