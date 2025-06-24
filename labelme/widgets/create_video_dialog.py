@@ -90,9 +90,23 @@ class CreateVideoDialog(QtWidgets.QDialog):
         self.onlyAnnotatedImages.setToolTip("When checked, the video will contain only images that have a JSON beside them")
         self.onlyAnnotatedImages.click()
 
+        # Collect Metrics Checkbox
+        self.collectMetrics = QtWidgets.QCheckBox("Collect and Log Metrics")
+        self.collectMetrics.setToolTip("When checked, the metrics will be collected and logged during video creation")
+        self.collectMetrics.click()
+
+        # # Draw midpoint Checkbox
+        # self.drawMidpoint = QtWidgets.QCheckBox("Draw midpoint on labels")
+        # self.drawMidpoint.setToolTip("When checked, a red midpoint will be drawn on all labels")
+        # self.drawMidpoint.click()
+
         fpsCheckCombo = QtWidgets.QHBoxLayout()
         fpsCheckCombo.addLayout(fpsLayout)
-        fpsCheckCombo.addWidget(self.onlyAnnotatedImages)
+        checkBoxCombo = QtWidgets.QVBoxLayout()
+        checkBoxCombo.addWidget(self.onlyAnnotatedImages)
+        checkBoxCombo.addWidget(self.collectMetrics)
+        # checkBoxCombo.addWidget(self.drawMidpoint)
+        fpsCheckCombo.addLayout(checkBoxCombo)
 
         # Complete layout
         layout.addLayout(frameRangeLayout)
@@ -122,7 +136,7 @@ class CreateVideoDialog(QtWidgets.QDialog):
                 frameTo = 0
         
         self.videoThread = QThread()
-        self.worker = VideoWorker(self.parent.imageList, self.parent.lastOpenDir, frameFrom, frameTo, int(self.fpsText.text()), self.onlyAnnotatedImages.isChecked())
+        self.worker = VideoWorker(self.parent.imageList, self.parent.lastOpenDir, frameFrom, frameTo, int(self.fpsText.text()), self.onlyAnnotatedImages.isChecked(), self.collectMetrics.isChecked())
         self.worker.moveToThread(self.videoThread)
 
         self.videoThread.started.connect(self.worker.run)

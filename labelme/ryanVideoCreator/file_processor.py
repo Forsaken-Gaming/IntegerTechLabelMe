@@ -6,6 +6,7 @@ import json
 import base64
 import numpy as np
 from labelme.ryanVideoCreator.drawing import draw_annotations_on_image
+from labelme.ryanVideoCreator.metrics_logging import Metrics
 
 global interrupted
 interrupted = False
@@ -19,7 +20,7 @@ def decode_image_data(image_data):
     np_array = np.frombuffer(img_data, np.uint8)
     return cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-def process_annotation_file(json_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset=100):
+def process_annotation_file(json_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset=100, metrics=None):
     """
 
     This function reads the annotation data from a JSON file, retrieves the image path
@@ -30,6 +31,7 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
         subfolder_path : The folder containing the associated image files.
         annotated_output_folder : The folder to save the annotated image.
         text_position_offset: Offset for positioning the filename text.
+        metrics: Keeping track of the number of frames that are annotated vs unannotated
 
     Why this approach:
         - Separating this function allows handling one file at a time, making it easier
@@ -41,6 +43,8 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
         with open(json_path + ".json", 'r') as f:
             annotation_data = json.load(f)
         image_filename = annotation_data.get('imagePath')
+        if metrics != None:
+            metrics.incrementAnnotatedFrameCount()
     except:
         # If unable to find the json, assume the image file name from the name of the json
         # if told to do so by user
@@ -57,11 +61,14 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
 
     image = cv2.imread(image_path) 
     #or decode_image_data(annotation_data.get('imageData'))
-    annotated_image = draw_annotations_on_image(image, annotation_data, image_filename, text_position_offset)
+    (annotated_image, label_count) = draw_annotations_on_image(image, annotation_data, image_filename, text_position_offset, metrics)
     output_image_path = os.path.join(annotated_output_folder, image_filename)
     cv2.imwrite(output_image_path, annotated_image)
+    if metrics != None:
+        metrics.incrementLabelCount(label_count)
+    return (label_count)
 
-def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, onlyAnnotatedImages, text_position_offset=100):
+def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, onlyAnnotatedImages, text_position_offset=100, metrics=None):
     """
     Processes all annotation files in a folder and saves annotated images.
 
@@ -79,7 +86,7 @@ def save_annotated_images(subfolder_path, annotated_output_folder, callback, ind
         # Get the json path of
         image_path = os.path.join(subfolder_path, os.path.splitext(png_files[indexFrom + i])[0])
         try:
-            process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset)
+            process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset, metrics)
         except Exception as e:
             print(f"Error processing file {image_path}: {e}")
         callback()
