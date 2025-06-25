@@ -4,6 +4,14 @@ from pathlib import Path
 
 class Metrics:
 
+    valid_labels = {
+        "AID_TO_NAVIGATION_CHANNEL_MARKER", "AID_TO_NAVIGATION_GENERAL", "AID_TO_NAVIGATION_LARGE_BUOY", "AID_TO_NAVIGATION_LIGHTHOUSE",
+        "AID_TO_NAVIGATION_SMALL_BUOY", "LARGE_GENERAL_OBSTACLE", "LARGE_VESSEL_CARGO", "LARGE_VESSEL_GENERAL","LARGE_VESSEL_MILITARY",
+        "LARGE_VESSEL_OTHER", "LARGE_VESSEL_PASSENGER", "MEDIUM_VESSEL_FISHING", "MEDIUM_VESSEL_GENERAL",
+        "MEDIUM_VESSEL_MILITARY", "MEDIUM_VESSEL_OTHER", "MEDIUM_VESSEL_TUG", "MEDIUM_VESSEL_TUG_IN_TOW", "MEDIUM_VESSEL_YACHT",
+        "SAILBOAT", "SMALL_GENERAL_OBSTACLE", "SMALL_VESSEL_GENERAL", "SMALL_VESSEL_JET_SKI", "SMALL_VESSEL_MILITARY",
+        "SMALL_VESSEL_OTHER", "SMALL_VESSEL_POWER_BOAT",
+    }
 
     def __init__(self, folder_name, date=None, time=None):
         self.folder_name = folder_name
@@ -76,9 +84,9 @@ class Metrics:
         prev_count: number of labels in the previous frame (int)
         '''
         if prev_count < curr_count:
-            self.addMetric(curr_frame, "LABEL(S) APPEARED       " + str(curr_count - prev_count) + " label(s) entered")
+            self.addMetric(curr_frame, "LABEL(S) APPEARED      " + str(curr_count - prev_count) + " label(s) entered")
         elif prev_count > curr_count:
-            self.addMetric(curr_frame, "LABEL(S) DISAPPEARED    " + str(prev_count - curr_count) + " label(s) exited")
+            self.addMetric(curr_frame, "LABEL(S) DISAPPEARED   " + str(prev_count - curr_count) + " label(s) exited")
     
     def compareChangeInMidpoint(self, curr_frame, label_name, prev_avg_change, curr_avg_change, midpoint):
         '''
@@ -94,6 +102,15 @@ class Metrics:
         Flags unnannoted frames
         '''
         self.addMetric(curr_frame, "UNANNOTATED FRAME")
+
+    def flagInvalidLabel(self, curr_frame, label_name):
+        '''
+        Flags label names not found in valid_frames set
+         - o(1) lookup, not using an array
+        '''
+        if label_name in self.valid_labels:
+            return
+        self.addMetric(curr_frame, f"INVALID LABEL          Improper name '{label_name}'")
 
     def addMetric(self, curr_frame, metric_str):
         '''

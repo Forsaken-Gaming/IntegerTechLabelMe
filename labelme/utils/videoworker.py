@@ -24,18 +24,6 @@ class VideoWorker(QObject):
         self.onlyAnnotatedImages = onlyAnnotatedImages
         self.collectMetrics = collectMetrics
 
-    # def init_metrics(self):
-    #     '''
-    #     Set up metrics collection (if collectMetrics is active / True)
-    #     '''
-    #     if self.collectMetrics:
-    #         folderName = self.lastOpenDir.split("/")[-1]
-    #         metrics = Metrics(folderName)
-    #         metrics.setDateAndTime()
-    #         return metrics
-    #     else:
-    #         return None
-
     def run(self):
         # Get paths
         folderName = self.lastOpenDir.split("/")[-1]
