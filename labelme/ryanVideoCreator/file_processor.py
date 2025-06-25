@@ -49,15 +49,18 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
         # If unable to find the json, assume the image file name from the name of the json
         # if told to do so by user
         annotation_data = None
+        image_filename = json_path.split(os.sep)[-1] + ".png"
+
+        if metrics != None:
+            metrics.flagUnannotated(image_filename)
+    
         if (onlyAnnotatedImages):
-            return
-        else:
-            image_filename = json_path.split(os.sep)[-1] + ".png"
+            return (0, image_filename)
 
     image_path = os.path.join(subfolder_path, image_filename)
     if not os.path.exists(image_path):
         print(f"Warning: Image file '{image_filename}' does not exist. Skipping file.")
-        return
+        return (0, image_filename + "(warning, file not found)")
 
     image = cv2.imread(image_path) 
     #or decode_image_data(annotation_data.get('imageData'))
@@ -66,7 +69,8 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
     cv2.imwrite(output_image_path, annotated_image)
     if metrics != None:
         metrics.incrementLabelCount(label_count)
-    return (label_count)
+    
+    return (label_count, image_filename)
 
 def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, onlyAnnotatedImages, text_position_offset=100, metrics=None):
     """
@@ -79,6 +83,7 @@ def save_annotated_images(subfolder_path, annotated_output_folder, callback, ind
         if f.lower().endswith('.png')
     ])
     # Annotate each frame
+    prev_label_count = 0
     for i in range(indexTo - indexFrom):
         # Check if the window was closed
         if (interrupted):
@@ -86,7 +91,12 @@ def save_annotated_images(subfolder_path, annotated_output_folder, callback, ind
         # Get the json path of
         image_path = os.path.join(subfolder_path, os.path.splitext(png_files[indexFrom + i])[0])
         try:
-            process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset, metrics)
+            curr_label_count, image_file_name = process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset, metrics)
+
+            # Compare num of labels in curr vs prev frame (if collecting metrics)
+            if metrics != None:
+                metrics.compareChangeInLabelCount(image_file_name, curr_label_count, prev_label_count)
+                prev_label_count = curr_label_count
         except Exception as e:
             print(f"Error processing file {image_path}: {e}")
         callback()

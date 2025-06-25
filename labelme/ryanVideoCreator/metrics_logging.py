@@ -3,6 +3,8 @@ from datetime import datetime
 from pathlib import Path
 
 class Metrics:
+
+
     def __init__(self, folder_name, date=None, time=None):
         self.folder_name = folder_name
         self.label_count = 0
@@ -67,14 +69,40 @@ class Metrics:
     def incrementAnnotatedFrameCount(self):
         self.annotated_frame_count += 1
 
-    def addMetric(self, frame_num, metric_str):
+    def compareChangeInLabelCount(self, curr_frame="Unannotated frame", curr_count=0, prev_count=0):
+        '''
+        curr_frame: name of the current frame (string)
+        curr_count: number of labels in the current frame (int)
+        prev_count: number of labels in the previous frame (int)
+        '''
+        if prev_count < curr_count:
+            self.addMetric(curr_frame, "LABEL(S) APPEARED       " + str(curr_count - prev_count) + " label(s) entered")
+        elif prev_count > curr_count:
+            self.addMetric(curr_frame, "LABEL(S) DISAPPEARED    " + str(prev_count - curr_count) + " label(s) exited")
+    
+    def compareChangeInMidpoint(self, curr_frame, label_name, prev_avg_change, curr_avg_change, midpoint):
+        '''
+        Goal: find when a label experiences an abonormal drastic change
+        '''
+        avg_change_delta = abs(curr_avg_change - prev_avg_change) * 2
+        print(str(curr_frame) + " stats - avg change delta, " + str(avg_change_delta) + ", midpoint: " + str(midpoint))
+        if avg_change_delta > 0.10:
+            self.addMetric(curr_frame, label_name + " at midpoint position [ " +  str(midpoint) + " ] had drastic movement (avg change delta between frames: [ " + str(avg_change_delta) + " ]")
+
+    def flagUnannotated(self, curr_frame):
+        '''
+        Flags unnannoted frames
+        '''
+        self.addMetric(curr_frame, "UNANNOTATED FRAME")
+
+    def addMetric(self, curr_frame, metric_str):
         '''
         Appends a string (which holds metrics of a partiular frame) to 'collective_frame_metrics'
         Args:
-            integer: frame number
-            string: metric information of a given frame
+            curr_frame: frame name (string
+            metric_str: metric information of a given frame, prepended to collective metrics output (string)
         '''
-        self.collective_frame_metrics += "Frame " + frame_num + ": " + metric_str + "\n"
+        self.collective_frame_metrics += curr_frame + ": " + metric_str + "\n"
 
     def resetAllMetrics(self):
         """
@@ -104,11 +132,11 @@ class Metrics:
                 log_file.write(f"Time: {self.time}\n")
 
                 # Primary collected metrics
-                log_file.write("\nCollected Metrics:")
+                log_file.write("\nCollected Metrics:\n")
                 if self.collective_frame_metrics != "":
                     log_file.write(self.collective_frame_metrics)
                 else:
-                    log_file.write("\nNo anomalies or key metrics found in the data.\n")
+                    log_file.write("No anomalies or key metrics found in the data.\n")
                 
                 # Concluding metrics
                 log_file.write("\nConcluding Metrics:\n")
