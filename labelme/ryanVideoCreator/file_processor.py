@@ -20,7 +20,7 @@ def decode_image_data(image_data):
     np_array = np.frombuffer(img_data, np.uint8)
     return cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-def process_annotation_file(json_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset=100, metrics=None):
+def process_annotation_file(json_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset=100, metrics=None, drawMidpoint=False):
     """
 
     This function reads the annotation data from a JSON file, retrieves the image path
@@ -64,7 +64,7 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
 
     image = cv2.imread(image_path) 
     #or decode_image_data(annotation_data.get('imageData'))
-    (annotated_image, label_count) = draw_annotations_on_image(image, annotation_data, image_filename, text_position_offset, metrics)
+    (annotated_image, label_count) = draw_annotations_on_image(image, annotation_data, image_filename, text_position_offset, metrics, drawMidpoint)
     output_image_path = os.path.join(annotated_output_folder, image_filename)
     cv2.imwrite(output_image_path, annotated_image)
     if metrics != None:
@@ -72,7 +72,7 @@ def process_annotation_file(json_path, subfolder_path, annotated_output_folder, 
     
     return (label_count, image_filename)
 
-def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, onlyAnnotatedImages, text_position_offset=100, metrics=None):
+def save_annotated_images(subfolder_path, annotated_output_folder, callback, indexFrom, indexTo, onlyAnnotatedImages, text_position_offset=100, metrics=None, drawMidpoint=False):
     """
     Processes all annotation files in a folder and saves annotated images.
 
@@ -91,7 +91,7 @@ def save_annotated_images(subfolder_path, annotated_output_folder, callback, ind
         # Get the json path of
         image_path = os.path.join(subfolder_path, os.path.splitext(png_files[indexFrom + i])[0])
         try:
-            curr_label_count, image_file_name = process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset, metrics)
+            curr_label_count, image_file_name = process_annotation_file(image_path, subfolder_path, annotated_output_folder, onlyAnnotatedImages, text_position_offset, metrics, drawMidpoint)
 
             # Compare num of labels in curr vs prev frame (if collecting metrics)
             if metrics != None:

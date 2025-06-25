@@ -8,7 +8,7 @@ class VideoWorker(QObject):
     stepText = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, imageList, lastOpenDir, frameFrom, frameTo, fps, onlyAnnotatedImages, collectMetrics):
+    def __init__(self, imageList, lastOpenDir, frameFrom, frameTo, fps, onlyAnnotatedImages, collectMetrics, drawMidpoint):
         super().__init__()
         self.imageList = imageList
         self.lastOpenDir = lastOpenDir
@@ -23,6 +23,7 @@ class VideoWorker(QObject):
         self.currentImageIndex = 0
         self.onlyAnnotatedImages = onlyAnnotatedImages
         self.collectMetrics = collectMetrics
+        self.drawMidpoint = drawMidpoint
 
     def run(self):
         # Get paths
@@ -72,7 +73,7 @@ class VideoWorker(QObject):
 
         # Annotate Images
         self.currentImageIndex = 0
-        labelme.ryanVideoCreator.file_processor.save_annotated_images(cachePath, annotatedImagePath, self.annotatedImageSaved, self.frameFrom, self.frameTo, self.onlyAnnotatedImages, 100, metrics)
+        labelme.ryanVideoCreator.file_processor.save_annotated_images(cachePath, annotatedImagePath, self.annotatedImageSaved, self.frameFrom, self.frameTo, self.onlyAnnotatedImages, 100, metrics, self.drawMidpoint)
 
         # Add Images to Video
         self.currentImageIndex = 0
