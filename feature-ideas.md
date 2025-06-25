@@ -4,6 +4,8 @@
 #### Simple features:
 
 - [ ] Log.txt file when creating video for additional metrics (label enters/exits frame, unannotated frame, etc.) (simples os opperations, prototype already created)
+- [ ] Add "Play Video" and "View Metrics Log" buttons to the right of "Create video button" that attempts brings user to the file (if file has been created)
+- [ ] After video is created add an "play video" selectable option along with close 
 - [ ] Test threading by saving dummy png/json files from server to local machine to see if it's possible to improve times for video compiling (despite network limitations) (```concurrent.futures import ThreadPoolExecutor```)
 
 #### Complex features:

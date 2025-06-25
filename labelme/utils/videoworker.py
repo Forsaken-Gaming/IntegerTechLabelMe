@@ -1,13 +1,14 @@
 from PyQt5.QtCore import QObject, pyqtSignal
 import os, shutil, time
 import labelme.ryanVideoCreator.file_processor
+from labelme.ryanVideoCreator.metrics_logging import Metrics
 
 class VideoWorker(QObject):
     progress = pyqtSignal(int)
     stepText = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, imageList, lastOpenDir, frameFrom, frameTo, fps, onlyAnnotatedImages):
+    def __init__(self, imageList, lastOpenDir, frameFrom, frameTo, fps, onlyAnnotatedImages, collectMetrics):
         super().__init__()
         self.imageList = imageList
         self.lastOpenDir = lastOpenDir
@@ -21,6 +22,19 @@ class VideoWorker(QObject):
         self.numberOfImages = self.frameTo - self.frameFrom
         self.currentImageIndex = 0
         self.onlyAnnotatedImages = onlyAnnotatedImages
+        self.collectMetrics = collectMetrics
+
+    # def init_metrics(self):
+    #     '''
+    #     Set up metrics collection (if collectMetrics is active / True)
+    #     '''
+    #     if self.collectMetrics:
+    #         folderName = self.lastOpenDir.split("/")[-1]
+    #         metrics = Metrics(folderName)
+    #         metrics.setDateAndTime()
+    #         return metrics
+    #     else:
+    #         return None
 
     def run(self):
         # Get paths
@@ -29,6 +43,14 @@ class VideoWorker(QObject):
         outputPath = os.path.join(os.path.expanduser(r"~\Desktop"), folderName) 
         annotatedImagePath = os.path.join(outputPath, "Annotated_Images")
         videoPath = os.path.join(outputPath, "Video")
+
+        if self.collectMetrics:
+            print("Constructing metrics for " + folderName)
+            metrics = Metrics(folderName)
+            metrics.setDateAndTime()
+        else: 
+            print("Skipping metrics for " + folderName)
+            metrics = None
 
         # Delete Annotated Image Cache if it is a repeat generation
         if (os.path.exists(annotatedImagePath)):
@@ -57,16 +79,21 @@ class VideoWorker(QObject):
         # If the process was cancelled last time, make sure Ryan's scripts will run
         labelme.ryanVideoCreator.setInterrupted(False)
         
-        # Cache images
-        self.cacheImages(cachePath)
+        # Cache images (passing in metrics to collect the number of frames)
+        totalFrameCount = self.cacheImages(cachePath, metrics)
 
         # Annotate Images
         self.currentImageIndex = 0
-        labelme.ryanVideoCreator.file_processor.save_annotated_images(cachePath, annotatedImagePath, self.annotatedImageSaved, self.frameFrom, self.frameTo, self.onlyAnnotatedImages, 100)
+        labelme.ryanVideoCreator.file_processor.save_annotated_images(cachePath, annotatedImagePath, self.annotatedImageSaved, self.frameFrom, self.frameTo, self.onlyAnnotatedImages, 100, metrics)
 
         # Add Images to Video
         self.currentImageIndex = 0
         labelme.ryanVideoCreator.video_maker.compile_frames_to_video(annotated_output_folder=annotatedImagePath, output_video_path=os.path.join(videoPath, "output.mp4"), callback=self.videoFrameAdded, video_fps=self.fps)
+        
+        # Print logged data to txt file
+        if self.collectMetrics:
+            metrics.setTotalFrameCount(totalFrameCount)
+            metrics.logMetricsToFile()
 
         self.progress.emit(100)
         self.stepText.emit("Done! Video is in the folder on your Desktop")
@@ -84,7 +111,7 @@ class VideoWorker(QObject):
         self.progress.emit(percent)
         self.stepText.emit(f"Adding Frames To Video ({self.currentImageIndex} / {self.numberOfImages})")
 
-    def cacheImages(self, cachePath):
+    def cacheImages(self, cachePath, metrics):
         # Reset index
         self.currentImageIndex = 0
         for i in range(self.numberOfImages):
@@ -121,7 +148,10 @@ class VideoWorker(QObject):
             percent = round(((self.currentImageIndex / self.numberOfImages) / 2) * 100)
             self.progress.emit(percent)
             self.stepText.emit(f"Caching Images ({self.currentImageIndex} / {self.numberOfImages})")
+
             self.currentImageIndex += 1
+        
+        return self.currentImageIndex
 
     def windowClosed(self):
         self.windowOpen = False

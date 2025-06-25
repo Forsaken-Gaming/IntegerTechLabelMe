@@ -320,6 +320,14 @@ class MainWindow(QtWidgets.QMainWindow):
             tip=self.tr("Create Video Using Current Folder"),
         )
 
+        viewMetrics = action(
+            text=self.tr("Create &Video"),
+            slot=self.createVideoDialog,
+            shortcut=None,
+            icon="open",
+            tip=self.tr("View metrics log"),
+        )
+
         toggle_keep_prev_mode = action(
             self.tr("Keep Previous Annotation"),
             self.toggleKeepPrevMode,
