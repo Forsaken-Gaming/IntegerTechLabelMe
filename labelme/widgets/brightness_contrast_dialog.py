@@ -35,24 +35,27 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
             slider.valueChanged.connect(
                 lambda value, lbl=value_label: lbl.setText(f"{value / self._base_value:.2f}")
             )
-            keepPrevToggle = QtWidgets.QCheckBox("Keep Previous " + title.split(":")[0])
-            layouts["KeepPreviousToggles"].addWidget(keepPrevToggle)
-            try:
-                if "Brightness:" in title:
-                    keepPrevToggle.setChecked(self.parent._config["keep_prev_brightness"])
-                    keepPrevToggle.clicked.connect(lambda: self.parent.enableKeepPrevBrightness(keepPrevToggle.isChecked()))
-                else:
-                    keepPrevToggle.setChecked(self.parent._config["keep_prev_contrast"])
-                    keepPrevToggle.clicked.connect(lambda: self.parent.enableKeepPrevContrast(keepPrevToggle.isChecked()))
-            except Exception as e:
-                print(e)
 
             layouts[title] = layout
             sliders[title] = slider
-
+        
         self.slider_brightness = sliders["Brightness:"]
         self.slider_contrast = sliders["Contrast:"]
         del sliders
+        
+        # Keep Previous Brightness Toggle
+        self.keepPrevBrightnessToggle = QtWidgets.QCheckBox("Keep Previous Brightness")
+        self.keepPrevBrightnessToggle.setChecked(self.parent._config["keep_prev_brightness"])
+        self.keepPrevBrightnessToggle.clicked.connect(lambda: self.parent.enableKeepPrevBrightness(self.keepPrevBrightnessToggle.isChecked()))
+
+        # Keep Previous Contrast Toggle
+        self.keepPrevContrastToggle = QtWidgets.QCheckBox("Keep Previous Contrast")
+        self.keepPrevContrastToggle.setChecked(self.parent._config["keep_prev_contrast"])
+        self.keepPrevContrastToggle.clicked.connect(lambda: self.parent.enableKeepPrevContrast(self.keepPrevContrastToggle.isChecked()))
+
+        layouts["KeepPreviousToggles"].addWidget(self.keepPrevBrightnessToggle)
+        layouts["KeepPreviousToggles"].addWidget(self.keepPrevContrastToggle)
+        
 
         layout = QtWidgets.QVBoxLayout()
         layout.addLayout(layouts["Brightness:"])
