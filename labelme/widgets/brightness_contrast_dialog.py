@@ -10,11 +10,12 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
 
     def __init__(self, img, callback, parent=None):
         super(BrightnessContrastDialog, self).__init__(parent)
-        self.setModal(True)
+        self.parent = parent
         self.setWindowTitle("Brightness/Contrast")
 
         sliders = {}
         layouts = {}
+        layouts["KeepPreviousToggles"] = QtWidgets.QHBoxLayout()
         for title in ["Brightness:", "Contrast:"]:
             layout = QtWidgets.QHBoxLayout()
             title_label = QtWidgets.QLabel(self.tr(title))
@@ -34,6 +35,17 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
             slider.valueChanged.connect(
                 lambda value, lbl=value_label: lbl.setText(f"{value / self._base_value:.2f}")
             )
+            keepPrevToggle = QtWidgets.QCheckBox("Keep Previous " + title.split(":")[0])
+            layouts["KeepPreviousToggles"].addWidget(keepPrevToggle)
+            try:
+                if "Brightness:" in title:
+                    keepPrevToggle.setChecked(self.parent._config["keep_prev_brightness"])
+                    keepPrevToggle.clicked.connect(lambda: self.parent.enableKeepPrevBrightness(keepPrevToggle.isChecked()))
+                else:
+                    keepPrevToggle.setChecked(self.parent._config["keep_prev_contrast"])
+                    keepPrevToggle.clicked.connect(lambda: self.parent.enableKeepPrevContrast(keepPrevToggle.isChecked()))
+            except Exception as e:
+                print(e)
 
             layouts[title] = layout
             sliders[title] = slider
@@ -45,6 +57,7 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         layout = QtWidgets.QVBoxLayout()
         layout.addLayout(layouts["Brightness:"])
         layout.addLayout(layouts["Contrast:"])
+        layout.addLayout(layouts["KeepPreviousToggles"])
         del layouts
         self.setLayout(layout)
 
