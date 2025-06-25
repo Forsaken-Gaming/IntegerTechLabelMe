@@ -53,6 +53,15 @@ class BrightnessContrastDialog(QtWidgets.QDialog):
         self.keepPrevContrastToggle.setChecked(self.parent._config["keep_prev_contrast"])
         self.keepPrevContrastToggle.clicked.connect(lambda: self.parent.enableKeepPrevContrast(self.keepPrevContrastToggle.isChecked()))
 
+        # Reset Buttons
+        resetBrightnessButton = QtWidgets.QPushButton("Reset")
+        resetContrastButton = QtWidgets.QPushButton("Reset")
+        resetBrightnessButton.clicked.connect(lambda: self.slider_brightness.setValue(self._base_value))
+        resetContrastButton.clicked.connect(lambda: self.slider_contrast.setValue(self._base_value))
+        layouts["Brightness:"].addWidget(resetBrightnessButton)
+        layouts["Contrast:"].addWidget(resetContrastButton)
+
+
         layouts["KeepPreviousToggles"].addWidget(self.keepPrevBrightnessToggle)
         layouts["KeepPreviousToggles"].addWidget(self.keepPrevContrastToggle)
         
