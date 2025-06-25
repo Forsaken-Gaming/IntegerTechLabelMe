@@ -11,13 +11,18 @@ def draw_rectangle_with_label(image, shape, filename, metrics=None, drawMidpoint
     cv2.rectangle(image, top_left, bottom_right, (0, 255, 0), 2)
     cv2.putText(image, label_name, label_position, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2, cv2.LINE_AA)
 
-    if metrics != None:
-        midpoint = ((top_left[0] + bottom_right[0]) // 2, (top_left[1] + bottom_right[1]) // 2)
-        if drawMidpoint:
-            cv2.circle(image, midpoint, 5, (0, 0, 255), -1)  # Draw a red dot at the midpoint
-        metrics.flagInvalidLabel(filename, label_name)
-    # return midpoint
+    midpoint = ((top_left[0] + bottom_right[0]) // 2, (top_left[1] + bottom_right[1]) // 2)
 
+    # Draw a red dot at the midpoint of label
+    if drawMidpoint:
+            cv2.circle(image, midpoint, 5, (0, 0, 255), -1)  
+
+    # Flag invalid names
+    if metrics != None:
+        metrics.flagInvalidLabel(filename, label_name)
+    
+    # # Return midpoint to collect in a list for better analyis of label postions/movement (future implementation)
+    # return midpoint
 
 def draw_filename(image, filename, text_position_offset=100):
    
