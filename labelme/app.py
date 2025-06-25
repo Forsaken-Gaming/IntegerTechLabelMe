@@ -2373,7 +2373,13 @@ class MainWindow(QtWidgets.QMainWindow):
             os.startfile(self.lastOpenDir)
 
     def createVideoDialog(self):
+        items = self.fileListWidget.selectedItems()
+        if not items:
+            return
+        item = items[0]
+
         dialog = CreateVideoDialog(
-            parent=self
+            parent=self,
+            index=self.imageList.index(item.text())
         )
         dialog.show()

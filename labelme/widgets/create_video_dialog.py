@@ -4,7 +4,7 @@ from PyQt5.QtCore import QThread
 
 
 class CreateVideoDialog(QtWidgets.QDialog):
-    def __init__(self, parent):
+    def __init__(self, index, parent):
         super(CreateVideoDialog, self).__init__(parent)
         self.parent = parent
         self.videoThread = None
@@ -50,7 +50,7 @@ class CreateVideoDialog(QtWidgets.QDialog):
         minVBox = QtWidgets.QVBoxLayout()
         minVBox.addWidget(QtWidgets.QLabel("From"))
         self.minFrameNumber = QtWidgets.QLineEdit()
-        self.minFrameNumber.setText("0")
+        self.minFrameNumber.setText(str(index))
         minVBox.addWidget(self.minFrameNumber)
 
         # To
