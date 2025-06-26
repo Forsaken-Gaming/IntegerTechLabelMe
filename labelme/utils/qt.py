@@ -38,15 +38,7 @@ def newAction(
     """Create a new action and assign callbacks, shortcuts, etc."""
     a = QtWidgets.QAction(text, parent)
     if icon is not None:
-        pixmap = QtGui.QPixmap(getIconStr(icon))
-        if (icon == "IntegerTech"):
-            pixmap = pixmap.scaled(
-                80,
-                75,
-                QtCore.Qt.KeepAspectRatio,
-                QtCore.Qt.SmoothTransformation
-            )
-        icon = QtGui.QIcon(pixmap)
+        icon = QtGui.QIcon(QtGui.QPixmap(getIconStr(icon)))
         a.setIcon(icon)
 
         a.setIconText(text.replace(" ", "\n"))

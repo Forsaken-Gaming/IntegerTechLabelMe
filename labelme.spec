@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from PyInstaller.utils.hooks import collect_data_files
-datas = collect_data_files('osam', include_py_files=False)
-datas += [("labelme/config/default_config.yaml", "labelme/config")]
+#datas = collect_data_files('osam', include_py_files=False)
+datas = [("labelme/config/default_config.yaml", "labelme/config")]
 
 import os
 
