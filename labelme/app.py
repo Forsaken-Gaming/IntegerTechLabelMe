@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import functools
+import gc
 import html
 import math
 import os
@@ -1612,6 +1613,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def loadFile(self, filename=None):
         """Load the specified file, or the last opened file if None."""
+        # Release previous image
+        self.clearImageData()
         # changing fileListWidget loads file
         if filename in self.imageList and (
             self.fileListWidget.currentRow() != self.imageList.index(filename)
@@ -1676,6 +1679,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             self.status(self.tr("Error reading %s") % filename)
             return False
+
         self.image = image
         self.filename = filename
         if self._config["keep_prev"]:
@@ -2244,3 +2248,9 @@ class MainWindow(QtWidgets.QMainWindow):
             index=self.imageList.index(item.text())
         )
         dialog.show()
+    def clearImageData(self):
+        self.canvas.loadPixmap(None)  # Reset pixmap
+        self.image = None
+        self.imageData = None
+        self.imagePath = None
+        gc.collect()  # Optional: force garbage collection
